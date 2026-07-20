@@ -81,6 +81,13 @@
   .project-box{border:1px solid #FDE68A;background:#FFFBEB;border-radius:6px;padding:12px;margin:10px 0;}
   .project-status{font-size:12px;color:var(--text-mid);margin-bottom:8px;font-weight:600;}
   .project-status b{color:#B45309;}
+  .danger-zone{border:1px solid #FCA5A5;background:#FEF2F2;border-radius:6px;padding:14px;margin-top:22px;}
+  .danger-zone .subhead{color:#B91C1C;}
+  .danger-zone .hint{color:#991B1B;}
+  .reset-btn{width:100%;background:var(--red-rep);color:#FFFFFF;border:none;padding:11px 20px;
+    border-radius:4px;font-weight:800;font-size:12px;letter-spacing:1px;text-transform:uppercase;
+    cursor:pointer;margin-top:8px;}
+  .reset-btn:hover{filter:brightness(1.1);}
 
   .bb-center{text-align:center;flex:1;min-width:140px;padding:0 10px;}
   .bb-target-label{font-size:11px;font-weight:800;color:var(--text-mid);text-transform:uppercase;letter-spacing:1px;}
@@ -257,6 +264,14 @@
 
     <div class="hint">
       <b>Dica de Fotos:</b> Você pode colar links diretos de imagens (.jpg, .png) da Wikipédia ou sites de notícias. Se deixar vazio, o sistema gera automaticamente um avatar elegante com as iniciais do candidato na cor do partido.
+    </div>
+
+    <div class="danger-zone">
+      <div class="subhead">Zona de perigo</div>
+      <div class="hint">
+        Apaga <b>todos</b> os resultados de Presidencial, Senado e Governador (candidatos, %, apuração, condados e projeções) — para todo mundo que estiver com o site aberto, instantaneamente. Não tem como desfazer.
+      </div>
+      <button class="reset-btn" id="resetAllBtn">Resetar tudo</button>
     </div>
   </div>
 </div>
@@ -924,7 +939,7 @@ function renderTicker(){
   const t = document.getElementById("ticker");
   const log = data.log || [];
   if(!log.length){ t.innerHTML = `<span>Aguardando o recebimento dos primeiros boletins de urna.</span>`; return; }
-  t.innerHTML = log.slice(0,6).map(item=>{
+  t.innerHTML = log.slice(0,3).map(item=>{
     const time = new Date(item.t).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
     return `<span><b>${time}</b> — ${item.msg}</span>`;
   }).join("<span style='color:var(--line-strong)'>·</span>");
@@ -1081,6 +1096,17 @@ document.getElementById("adminToggle").addEventListener("click", ()=>{
 
 document.getElementById("stateSelect").addEventListener("change", onStateSelectChange);
 document.getElementById("countySelect").addEventListener("change", onCountySelectChange);
+
+document.getElementById("resetAllBtn").addEventListener("click", async ()=>{
+  const conf = window.prompt('Isso apaga TODOS os resultados (Presidencial, Senado e Governador) para todo mundo, agora mesmo. Para confirmar, digite RESETAR:');
+  if(conf !== "RESETAR"){ showToast("Reset cancelado."); return; }
+  data = defaultData();
+  await persist("Reset geral — todos os dados foram apagados pelo administrador");
+  activeRace = "president";
+  clearCounties();
+  await renderAll();
+  showToast("Todos os dados foram resetados.");
+});
 
 document.getElementById("projectStateBtn").addEventListener("click", async ()=>{
   const abbr = document.getElementById("stateSelect").value;
